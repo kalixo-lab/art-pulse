@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Supabase Example</title>
+
+  <style>
+    body{
+      background:#0d1117;
+      color:white;
+      font-family:Arial;
+      padding:40px;
+    }
+
+    .box{
+      max-width:500px;
+      margin:auto;
+      background:#161b22;
+      padding:20px;
+      border-radius:12px;
+      border:1px solid #30363d;
+    }
+
+    input,button{
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+    }
+
+    input{
+      background:#21262d;
+      color:white;
+    }
+
+    button{
+      background:#00ff99;
+      color:black;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    button:hover{
+      opacity:0.9;
+    }
+
+    #messages{
+      margin-top:20px;
+    }
+
+    .msg{
+      background:#21262d;
+      padding:10px;
+      border-radius:8px;
+      margin-top:10px;
+    }
+
+    .name{
+      color:#00ff99;
+      font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+
+  <h1>Supabase Chat Example</h1>
+
+  <input type="text" id="username" placeholder="Your name">
+  <input type="text" id="message" placeholder="Type message">
+
+  <button onclick="sendMessage()">
+    Send Message
+  </button>
+
+  <div id="messages"></div>
+
+</div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+  // =========================
+  // YOUR SUPABASE INFO
+  // =========================
+
+  const SUPABASE_URL =
+    "https://YOUR_PROJECT.supabase.co"
+
+  const SUPABASE_KEY =
+    "YOUR_ANON_PUBLIC_KEY"
+
+  // =========================
+  // CREATE CLIENT
+  // =========================
+
+  const supabase =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    )
+
+  // =========================
+  // SEND MESSAGE
+  // =========================
+
+  async function sendMessage(){
+
+    const username =
+      document.getElementById("username").value
+
+    const message =
+      document.getElementById("message").value
+
+    if(!username || !message){
+      alert("Fill all fields")
+      return
+    }
+
+    const { error } = await supabase
+      .from("messages")
+      .insert([
+        {
+          username: username,
+          message: message
+        }
+      ])
+
+    if(error){
+      alert(error.message)
+      console.log(error)
+    }else{
+      document.getElementById("message").value = ""
+      loadMessages()
+    }
+  }
+
+  // =========================
+  // LOAD MESSAGES
+  // =========================
+
+  async function loadMessages(){
+
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .order("created_at", {
+        ascending:false
+      })
+
+    if(error){
+      console.log(error)
+      return
+    }
+
+    const messagesDiv =
+      document.getElementById("messages")
+
+    messagesDiv.innerHTML = ""
+
+    data.forEach(msg => {
+
+      messagesDiv.innerHTML += `
+        <div class="msg">
+          <div class="name">
+            ${msg.username}
+          </div>
+
+          <div>
+            ${msg.message}
+          </div>
+        </div>
+      `
+    })
+  }
+
+  // =========================
+  // AUTO LOAD
+  // =========================
+
+  loadMessages()
+
+</script>
+
+</body>
+</html>
