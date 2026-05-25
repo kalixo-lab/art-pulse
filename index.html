@@ -1,190 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Supabase Example</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body{
-      background:#0d1117;
-      color:white;
-      font-family:Arial;
-      padding:40px;
-    }
+<title>Working Supabase Test</title>
 
-    .box{
-      max-width:500px;
-      margin:auto;
-      background:#161b22;
-      padding:20px;
-      border-radius:12px;
-      border:1px solid #30363d;
-    }
+<style>
 
-    input,button{
-      width:100%;
-      padding:12px;
-      margin-top:10px;
-      border:none;
-      border-radius:8px;
-      font-size:16px;
-    }
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    padding:30px;
+}
 
-    input{
-      background:#21262d;
-      color:white;
-    }
+input{
+    width:300px;
+    padding:10px;
+    margin-top:10px;
+    display:block;
+}
 
-    button{
-      background:#00ff99;
-      color:black;
-      cursor:pointer;
-      font-weight:bold;
-    }
+button{
+    padding:10px 20px;
+    margin-top:10px;
+    cursor:pointer;
+}
 
-    button:hover{
-      opacity:0.9;
-    }
+#messages{
+    margin-top:30px;
+}
 
-    #messages{
-      margin-top:20px;
-    }
+.msg{
+    background:#222;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+}
 
-    .msg{
-      background:#21262d;
-      padding:10px;
-      border-radius:8px;
-      margin-top:10px;
-    }
-
-    .name{
-      color:#00ff99;
-      font-weight:bold;
-    }
-  </style>
+</style>
 </head>
 <body>
 
-<div class="box">
+<h1>Supabase Working Test</h1>
 
-  <h1>Supabase Chat Example</h1>
+<input id="username" placeholder="username">
 
-  <input type="text" id="username" placeholder="Your name">
-  <input type="text" id="message" placeholder="Type message">
+<input id="message" placeholder="message">
 
-  <button onclick="sendMessage()">
-    Send Message
-  </button>
+<button onclick="sendMessage()">
+Send
+</button>
 
-  <div id="messages"></div>
+<div id="messages"></div>
 
-</div>
+<script type="module">
 
-<!-- Supabase CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+import { createClient }
+from 'https://esm.sh/@supabase/supabase-js@2'
 
-<script>
+const supabase = createClient(
+  'https://vwaddjunjgsfvwsldpyl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3YWRkanVuamdzZnZ3c2xkcHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTAyNDAsImV4cCI6MjA5NTI4NjI0MH0.njrg8MEKQbL0IjQGvUqosyfSlxGvx2eYj8qKtCAPWZQ'
+)
 
-  // =========================
-  // YOUR SUPABASE INFO
-  // =========================
-
-  const SUPABASE_URL =
-    "https://vwaddjunjgsfvwsldpyl.supabase.co"
-
-  const SUPABASE_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3YWRkanVuamdzZnZ3c2xkcHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTAyNDAsImV4cCI6MjA5NTI4NjI0MH0.njrg8MEKQbL0IjQGvUqosyfSlxGvx2eYj8qKtCAPWZQ"
-
-  // =========================
-  // CREATE CLIENT
-  // =========================
-
-  const supabase =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    )
-
-  // =========================
-  // SEND MESSAGE
-  // =========================
-
-  async function sendMessage(){
+async function sendMessage(){
 
     const username =
-      document.getElementById("username").value
+    document.getElementById("username").value
 
     const message =
-      document.getElementById("message").value
+    document.getElementById("message").value
 
-    if(!username || !message){
-      alert("Fill all fields")
-      return
-    }
-
-    const { error } = await supabase
-      .from("messages")
-      .insert([
+    await supabase
+    .from("messages")
+    .insert([
         {
-          username: username,
-          message: message
+            username:username,
+            message:message
         }
-      ])
+    ])
 
-    if(error){
-      alert(error.message)
-      console.log(error)
-    }else{
-      document.getElementById("message").value = ""
-      loadMessages()
-    }
-  }
+    loadMessages()
+}
 
-  // =========================
-  // LOAD MESSAGES
-  // =========================
+async function loadMessages(){
 
-  async function loadMessages(){
+    const { data } =
+    await supabase
+    .from("messages")
+    .select("*")
+    .order("id",{ascending:false})
 
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .order("created_at", {
-        ascending:false
-      })
+    const box =
+    document.getElementById("messages")
 
-    if(error){
-      console.log(error)
-      return
-    }
+    box.innerHTML = ""
 
-    const messagesDiv =
-      document.getElementById("messages")
+    data.forEach(item=>{
 
-    messagesDiv.innerHTML = ""
-
-    data.forEach(msg => {
-
-      messagesDiv.innerHTML += `
+        box.innerHTML += `
         <div class="msg">
-          <div class="name">
-            ${msg.username}
-          </div>
-
-          <div>
-            ${msg.message}
-          </div>
+            <b>${item.username}</b>
+            <br>
+            ${item.message}
         </div>
-      `
+        `
     })
-  }
+}
 
-  // =========================
-  // AUTO LOAD
-  // =========================
+window.sendMessage = sendMessage
 
-  loadMessages()
+loadMessages()
 
 </script>
 
